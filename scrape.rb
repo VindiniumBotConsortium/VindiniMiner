@@ -3,7 +3,8 @@
 # Scrapes 
 #
 
-CONFIG_FILE = './config.yml'
+CONFIG_FILE        = './config.yml'
+MONGO_SEARCH_DELAY = 10
 
 require_relative './lib/monitor.rb'
 require_relative './lib/retriever.rb'
@@ -48,7 +49,6 @@ begin
 
     # Select from mongoDB where the retrieved: false property
     # is set
-    puts "Searching!"
     while(record = index.find_one({retrieved: false}))
 
       # Convert from BSON
@@ -73,6 +73,9 @@ begin
       log.info "Waiting #{conf[:event_download_delay]}s until next download..."
       sleep(conf[:event_download_delay].to_f)
     end
+
+    # Wait so we don't hit mongo too hard
+    sleep(MONGO_SEARCH_DELAY)
 
   }
 
