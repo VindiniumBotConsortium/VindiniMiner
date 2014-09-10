@@ -127,36 +127,34 @@ class GameMonitor
   # Assumes mongoDB will error on duplicate hash keys.
   def process_json_list(list)
 
-    begin
-      json    = JSON.parse(list)
+    json    = JSON.parse(list)
 
-      # Check we have a list of IDs
-      # and then construct a record if so
-      if json.is_a?(Array)
-        json.each do |hash|
-          record  = {hash:      hash, 
-                     retrieved: false, 
-                     added:     Time.now.to_i
-          }
+    # Check we have a list of IDs
+    # and then construct a record if so
+    if json.is_a?(Array)
+      json.each do |hash|
+        record  = {hash:      hash, 
+                   retrieved: false, 
+                   added:     Time.now.to_i
+        }
 
-          # We want this to fail if it's duped, so we don't
-          # overwrite the retrieved: key.
-          #
-          # This is a hideous abuse of exceptions to handle 
-          # logic but it avoids TOCTOU race conditions.
-          begin
-            @index.save(record)
-            @log.info "Added new hash #{hash}"
-          rescue Mongo::OperationFailure
-            @log.info "Discovered duplicate hash: #{hash}"
-          end
+        # We want this to fail if it's duped, so we don't
+        # overwrite the retrieved: key.
+        #
+        # This is a hideous abuse of exceptions to handle 
+        # logic but it avoids TOCTOU race conditions.
+        begin
+          @index.save(record)
+          @log.info "Added new hash #{hash}"
+        rescue Mongo::OperationFailure
+          @log.info "Discovered duplicate hash: #{hash}"
         end
       end
-    rescue JSON::ParserError
-      # meh.
-      # XXX: comment this out, probably, because it's pretty paranoid.
-      warn "Failed to parse line: #{l}"
     end
+  rescue JSON::ParserError
+    # meh.
+    # XXX: comment this out, probably, because it's pretty paranoid.
+    @log.error "Failed to parse line: #{l}"
   end
 
 end
