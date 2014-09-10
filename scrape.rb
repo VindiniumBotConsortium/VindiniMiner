@@ -6,6 +6,7 @@
 CONFIG_FILE = './config.yml'
 
 require_relative './lib/monitor.rb'
+require_relative './lib/retriever.rb'
 require 'yaml'
 require 'mongo'
 require 'logger'
@@ -36,9 +37,47 @@ event_watcher = GameMonitor.new(conf[:announce_url], index, conf[:retry_delay], 
 event_watcher.listen
 
 
+# An object to retrieve event streams
+stream_retriever = GameRetriever.new(conf[:event_url], db, index, log)
+
 # TODO: pump mongodb for things that aren't yet finished: true, and download the
 #       contents to a new collection for each.
-sleep
+begin
+
+  loop{
+
+    # Sleep to allow the other process to do stuff
+    sleep(1)
+
+    # Select from mongoDB where the retrieved: false property
+    # is set
+    puts "Searching!"
+    while(record = index.find_one({retrieved: false}))
+
+      # Convert from BSON
+      record = record.to_h
+      hash = record['hash']
+
+      # Delete it if it doesn't have a hash
+      unless hash
+        index.remove(record['_id'])
+        next
+      end
+
+      # Else retrieve the event stream
+      stream_retriever.retrieve(hash)
+      # puts "=--> #{record}"
+
+      # And wait...
+      sleep(conf[:event_download_delay].to_f)
+    end
+
+  }
+
+
+rescue StandardError => se
+
+end
 
 
 # Wait for the thing to stop
