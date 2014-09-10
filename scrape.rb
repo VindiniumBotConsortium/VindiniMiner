@@ -38,16 +38,13 @@ event_watcher.listen
 
 
 # An object to retrieve event streams
-stream_retriever = GameRetriever.new(conf[:event_url], db, index, log)
+stream_retriever = GameRetriever.new(conf[:event_url], db, log)
 
 # TODO: pump mongodb for things that aren't yet finished: true, and download the
 #       contents to a new collection for each.
 begin
 
   loop{
-
-    # Sleep to allow the other process to do stuff
-    sleep(1)
 
     # Select from mongoDB where the retrieved: false property
     # is set
@@ -68,7 +65,12 @@ begin
       stream_retriever.retrieve(hash)
       # puts "=--> #{record}"
 
+      # Save record back to mongo
+      record['retrieved'] = true
+      index.save(record)
+
       # And wait...
+      log.info "Waiting #{conf[:event_download_delay]}s until next download..."
       sleep(conf[:event_download_delay].to_f)
     end
 

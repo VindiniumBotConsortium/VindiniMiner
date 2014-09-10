@@ -10,14 +10,11 @@ class GameRetriever
 
   DATA_LINE_RX = /^data:\s*(?<event>\{.*?)\s+$/
 
-  def initialize(base_url, db, index, log=Logger.new(STDOUT))
+  def initialize(base_url, db, log=Logger.new(STDOUT))
     @base_url = base_url
     @base_url = "#{base_url}/" unless @base_url.to_s =~ /\/$/ # Ensure it ends with a slash
     @db       = db
-    @index    = index
     @log      = log
-
-    puts "\n\n ==> #{db} // #{index} // #{base_url}"
   end
 
   def retrieve(hash)
@@ -33,10 +30,6 @@ class GameRetriever
     # Parse
     collection = @db.collection(hash)
     parse_event_stream(body, collection)
-
-    # Update the index for the item we have done stuff to.
-    @index.find_and_modify(query:  {hash: hash}, 
-                           update: {retrieved: true})
 
   rescue StandardError => se
     @log.error "Failure downloading events: #{se}\n#{se.backtrace.join("\n")}"

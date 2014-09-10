@@ -11,5 +11,5 @@
   :index: vindindex
 :announce_url: http://vindinium.org/now-playing       # Where to get the JSON list of hashes
 :event_url: http://vindinium.org/events/              # Where to get events
-:retry_delay: 10  # Wait n seconds before retrying if the connection is dropped.
-:event_download_delay: 5 # Wait n seconds between event stream downloads.
+:retry_delay: 120  # Wait n seconds before retrying if the connection is dropped.
+:event_download_delay: 60 # Wait n seconds between event stream downloads.
