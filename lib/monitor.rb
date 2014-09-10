@@ -11,7 +11,9 @@ class GameMonitor
 
   attr_reader :thread, :url, :index, :delay, :stop
 
-  def initialize(url, index, delay = 10, log = Logger.new)
+  DATA_LINE_RX = /^data:\s*(?<list>\[.*?\])/
+
+  def initialize(url, index, delay = 10, log = Logger.new(STDOUT))
     @url    = url
     @index  = index
     @delay  = delay
@@ -107,7 +109,7 @@ class GameMonitor
       @stream_buf.each_line do |l|
 
         # Check it's vaguely sane and read the array out of the dodgy JSON line
-        next unless(m = l.match(/^data:\s*(?<list>\[.*?\])/))
+        next unless(m = l.match(DATA_LINE_RX))
         list = m[:list]
 
         process_json_list(list)
