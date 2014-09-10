@@ -1,10 +1,14 @@
 ---
-:server:
-  :host:
-  :port:
- #:auth:
- 
-
-
-
+:mongo:
+  :host: localhost
+  :port: 27017
+  :database: vindiniminer
+  #:auth:         # Uncomment to enable auth
+    #:username:
+    #:password:
+# :rate_limit: 
+:collections:
+  :index: vindindex
+:announce_url: http://vindinium.org/now-playing       # Where to get the JSON list of hashes
+:retry_delay: 10  # Wait n seconds before retrying if the connection is dropped.
 
